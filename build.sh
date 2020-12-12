@@ -21,6 +21,21 @@ rm "${FNAME}.pdf" >> /dev/null 2>&1
 echo "Pull recent image..."
 docker pull petewilcox/texlive:latest > build.log
 
+# chktex errors we want to ignore
+err_ignore=(
+    -n22
+    -n36
+    -n30
+    -n13
+    -n17
+    -n38
+    -n2
+    -n44
+    -n26
+    -n10
+    -n12
+    )
+
 echo "Linting..."
 for f in src/*.tex; do
     echo "- $f"
@@ -29,10 +44,7 @@ for f in src/*.tex; do
         -v "$(pwd)"/:/mnt \
         --entrypoint=/bin/bash \
         petewilcox/texlive:latest -c \
-        "chktex -eall -I -n36 -n22 -n30 /mnt/$f" &> chktex.log
-        # ignore requirements for space before parenthesis (vcpu()) 36
-        # comments are not errors (22)
-        # ignore spaces before commands (30)
+        "chktex -eall -I ${err_ignore[*]} /mnt/$f" &> chktex.log
 
     grep "No errors printed" chktex.log >> /dev/null
 
